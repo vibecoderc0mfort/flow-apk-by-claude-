@@ -21,11 +21,17 @@ jobs:
         with:
           gradle-version: 8.2
 
-      - name: Download big run.sh from release "files" (if any)
+      - name: Download script from release "files" (any file name)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download files -p run.sh -R "${{ github.repository }}" || echo "no release file, skipping"
+          mkdir -p dl
+          gh release download files -R "${{ github.repository }}" -p '*' -D dl || echo "no release found, skipping"
+          f=$(find dl -type f -printf '%s %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)
+          if [ -n "$f" ]; then
+            cp "$f" run.sh
+            echo "using: $f"
+          fi
 
       - name: Unpack project and apply run.sh
         run: |
